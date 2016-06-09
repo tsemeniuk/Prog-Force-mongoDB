@@ -23,18 +23,18 @@ public class DataSource {
     private DataSource() {
     }
 
-    public MongoDatabase getDb(String text) {
+    public MongoDatabase getDb(String name) {
         LOG.info("Connecting to database...");
         mongoClient = new MongoClient();
-        return mongoClient.getDatabase(text);
+        return mongoClient.getDatabase(name);
     }
-    public Datastore getDataSource(String text) {
+    public Datastore getDataSource(String name) {
         LOG.info("Connecting to database...");
         Morphia morphia = new Morphia();
         morphia.map(Product.class).map(Category.class).map(FoodStore.class);
         MongoClient mongoClient = new MongoClient();
 
-        return morphia.createDatastore(mongoClient, text);
+        return morphia.createDatastore(mongoClient, name);
     }
 
 }

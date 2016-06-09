@@ -1,4 +1,4 @@
-package starter;
+package threads;
 
 import model.Category;
 import model.FoodStore;

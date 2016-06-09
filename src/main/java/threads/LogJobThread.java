@@ -1,4 +1,4 @@
-package starter;
+package threads;
 
 import java.util.logging.Logger;
 
