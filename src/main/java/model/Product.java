@@ -1,14 +1,23 @@
 package model;
 
-import org.mongodb.morphia.annotations.Embedded;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
 
-//@Indexes(@Index(fields = @Field(value = "$**", type = IndexType.TEXT)))
-@Embedded
+@Entity(noClassnameStored = true)
 public class Product {
-
+    @Id
+    private ObjectId id = new ObjectId();
+    @Indexed
     private String title;
+    @Indexed
     private int price;
+    @Indexed
     private String status;
+
+    public Product() {
+    }
 
     public Product(String title, int price, String status) {
         this.title = title;

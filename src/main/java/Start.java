@@ -1,5 +1,5 @@
 import threads.InitializerFoodStore;
-import threads.InitializerGadgedStore;
+import threads.InitializerGadgetStore;
 import threads.LogJobThread;
 
 import java.util.logging.Level;
@@ -14,15 +14,15 @@ public class Start {
         LOG.info("Start program...");
 
         InitializerFoodStore foodStore = new InitializerFoodStore();
-        InitializerGadgedStore gadgedStore = new InitializerGadgedStore();
+        InitializerGadgetStore gadgetStore = new InitializerGadgetStore();
         LogJobThread logJobThread = new LogJobThread();
 
         Thread t1 = new Thread(foodStore);
-        Thread t2 = new Thread(gadgedStore);
+        Thread t2 = new Thread(gadgetStore);
         Thread t3 = new Thread(logJobThread);
 
         t1.start();
-        Thread.currentThread().sleep(1000);
+        Thread.currentThread().sleep(5000);
         t2.start();
         t2.join();
         t3.start();

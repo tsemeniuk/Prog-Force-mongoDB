@@ -1,15 +1,21 @@
 package model;
 
 
-import org.mongodb.morphia.annotations.Embedded;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.Reference;
 
 import java.util.List;
 
-@Embedded
+@Entity(noClassnameStored = true)
 public class Category {
-
+    @Id
+    private ObjectId id = new ObjectId();
+    @Indexed
     private String name;
-    @Embedded
+    @Reference
     private List<Product> productList;
 
     public Category() {

@@ -2,10 +2,7 @@ package model;
 
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.*;
 import util.DataSource;
 
 import java.util.List;
@@ -14,9 +11,9 @@ import java.util.List;
 public class FoodStore implements Store {
     @Id
     private ObjectId id = new ObjectId();
-    @Property(value = "name")
+    @Indexed
     private String name;
-    @Embedded
+    @Reference
     private List<Category> categoryList;
     private static FoodStore ourInstance = new FoodStore();
 
@@ -49,64 +46,27 @@ public class FoodStore implements Store {
     }
 
     public Product get(String title) {
-        Datastore ds = DataSource.getInstance().getDataSource("PROG_FORCE");
-        FoodStore store = ds.find(FoodStore.class).get();
-        for (Category category : store.getCategoryList()) {
-            for (Product product : category.getProductList()) {
-                if (title.equals(product.getTitle())) {
-                    return product;
-                }
-            }
-        }
-        return null;
+        Datastore db = DataSource.getInstance().getDataSource("PROG_FORCE");
+        return db.find(Product.class).field("title").equal(title).get();
     }
 
     public void add(String categoryName, Product product) {
         Datastore ds = DataSource.getInstance().getDataSource("PROG_FORCE");
-        FoodStore store = ds.find(FoodStore.class).get();
-
-        for (Category category : store.getCategoryList()) {
-            if (categoryName.equals(category.getName())) {
-                category.getProductList().add(product);
-                ds.save(store);
-            }
-        }
+        ds.save(product);
     }
 
     public void changePrice(String title, int price) {
-        Datastore ds = DataSource.getInstance().getDataSource("PROG_FORCE");
-        FoodStore store = ds.find(FoodStore.class).get();
-        for (Category category : store.getCategoryList()) {
-            for (Product product : category.getProductList()) {
-                if (title.equals(product.getTitle())) {
-                    product.setPrice(price);
-                    ds.save(store);
-                }
-            }
-        }
-
-        /*dataSource = DataSource.getInstance();
-        MongoDatabase db = dataSource.getDb("PROG_FORCE");
-        MongoCollection<Document> store = db.getCollection("store");
-        store.updateOne(eq("title", title), set("price", price));*/
+        Datastore db = DataSource.getInstance().getDataSource("PROG_FORCE");
+        Product product = db.find(Product.class).field("title").equal(title).get();
+        product.setPrice(price);
+        db.save(product);
     }
 
     public void changeStatus(String title, String status) {
-        Datastore ds = DataSource.getInstance().getDataSource("PROG_FORCE");
-        FoodStore store = ds.find(FoodStore.class).get();
-        for (Category category : store.getCategoryList()) {
-            for (Product product : category.getProductList()) {
-                if (title.equals(product.getTitle())) {
-                    product.setStatus(status);
-                }
-            }
-        }
-        ds.save(store);
-
-        /*dataSource = DataSource.getInstance();
-        MongoDatabase db = dataSource.getDb("PROG_FORCE");
-        MongoCollection<Document> store = db.getCollection("store");
-        store.updateOne(eq("title", title), set("status", status));*/
+        Datastore db = DataSource.getInstance().getDataSource("PROG_FORCE");
+        Product product = db.find(Product.class).field("title").equal(title).get();
+        product.setStatus(status);
+        db.save(product);
     }
 
     @Override

@@ -4,6 +4,7 @@ import model.Category;
 import model.FoodStore;
 import model.Product;
 import org.mongodb.morphia.Datastore;
+import service.ProductService;
 import util.DataSource;
 
 import java.util.ArrayList;
@@ -14,46 +15,40 @@ public class InitializerFoodStore implements Runnable {
     public static final Logger LOG = Logger.getLogger(InitializerFoodStore.class.getName());
 
     public void run() {
+        DataSource.getInstance().dropDataSource("PROG_FORCE");
+
         FoodStore foodMarket = getFoodStore();
 
         Datastore ds = DataSource.getInstance().getDataSource("PROG_FORCE");
         ds.delete(ds.createQuery(FoodStore.class));
+
+        List<Category> categories = foodMarket.getCategoryList();
+        for (Category category : categories) {
+            ds.save(category.getProductList());
+        }
+        ds.save(foodMarket.getCategoryList());
         ds.save(foodMarket);
         ds.ensureIndexes();
 
-        LOG.info("=====================Data Base filled successfully========================");
-        LOG.info("=============================Updating data...=============================");
+        LOG.info("Data Base filled successfully. Updating data...");
+        ProductService.getInstance().changeStatusAbsent();
+        ProductService.getInstance().changeStatusExpected();
+        ProductService.getInstance().changePrice();
 
-        List<Category> categoryList = foodMarket.getCategoryList();
-        Category categoryToAbsent = categoryList.get(0);
-        List<Product> productList = categoryToAbsent.getProductList();
-        for (Product product : productList) {
-            product.setStatus("Absent");
-        }
-        for (int i = categoryList.size() - 1; i >= 1; i--) {
-            Category category = categoryList.get(i);
-            List<Product> products = category.getProductList();
-            for (int y = 0; y < products.size() / 2; y++) {
-                Product product = products.get(y);
-                product.setStatus("Expected");
-            }
-            for (int j = 0; j < products.size(); j++) {
-                Product product = products.get(j);
-                if (product.getStatus().equals("Available")) {
-                    product.setPrice(product.getPrice() * 100 / 80);
-                }
-            }
-        }
-        ds.save(foodMarket);
-        LOG.info("====================Data updated successfully===========================");
+        Product TEST_PRODUCT_01 = new Product("TEST PRODUCT 01", 100000000, "Available");
+        Product TEST_PRODUCT_02 = new Product("TEST PRODUCT 02", 15000000, "Expected");
+
+        ds.save(TEST_PRODUCT_01);
+        ds.save(TEST_PRODUCT_02);
+        LOG.info("Data updated successfully: {PRICE, STATUS}");
 
         Product product = foodMarket.get("candy");
-        LOG.info("====================FOUNDED PRODUCT: " + product);
+        LOG.info("FOUNDED PRODUCT: " + product);
 
         foodMarket.changePrice("candy", 120);
         foodMarket.changeStatus("candy", "Expected");
         foodMarket.add("sweet", new Product("Frooty bread", 999, "Expected"));
-        LOG.info("==================Status/price updated successfully=====================");
+        LOG.info("Data updated successfully: {PRICE, STATUS}");
     }
 
     private FoodStore getFoodStore() {
@@ -77,12 +72,12 @@ public class InitializerFoodStore implements Runnable {
 
         Product whiteBread = new Product("whiteBread", 3, "Available");
         Product darkBread = new Product("darkBread", 4, "Absent");
-        Product sweetBread = new Product("sweetBread", 5, "Absent");
+        Product sweetBread = new Product("sweetBread", 5, "Available");
         Product seedBread = new Product("seedBread", 7, "Available");
 
         Product candy = new Product("candy", 7, "Absent");
         Product chocolate = new Product("chocolate", 16, "Available");
-        Product darkChocolate = new Product("darkChocolate", 17, "Expected");
+        Product darkChocolate = new Product("darkChocolate", 17, "Available");
         Product sweetCandy = new Product("sweetCandy", 22, "Absent");
         Product originalCandy = new Product("originalCandy", 18, "Available");
 

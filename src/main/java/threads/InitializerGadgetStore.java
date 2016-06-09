@@ -4,62 +4,54 @@ import model.Category;
 import model.GadgetStore;
 import model.Product;
 import org.mongodb.morphia.Datastore;
+import service.ProductService;
 import util.DataSource;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class InitializerGadgedStore implements Runnable {
-    public static final Logger LOG = Logger.getLogger(InitializerGadgedStore.class.getName());
+public class InitializerGadgetStore implements Runnable {
+    public static final Logger LOG = Logger.getLogger(InitializerGadgetStore.class.getName());
 
     public void run() {
         GadgetStore gadgetMarket = getGadgetStore();
 
         Datastore ds = DataSource.getInstance().getDataSource("PROG_FORCE");
         ds.delete(ds.createQuery(GadgetStore.class));
+
+        List<Category> categories = gadgetMarket.getCategoryList();
+        for (Category category : categories) {
+            ds.save(category.getProductList());
+        }
+        ds.save(gadgetMarket.getCategoryList());
         ds.save(gadgetMarket);
         ds.ensureIndexes();
 
-        LOG.info("=====================Data Base filled successfully========================");
-        LOG.info("=============================Updating data...=============================");
+        LOG.info("Data Base filled successfully. Updating data...");
+        ProductService.getInstance().changeStatusAbsent();
+        ProductService.getInstance().changeStatusExpected();
+        ProductService.getInstance().changePrice();
 
-        List<Category> categoryList = gadgetMarket.getCategoryList();
-        Category categoryToAbsent = categoryList.get(0);
-        List<Product> productList = categoryToAbsent.getProductList();
-        for (Product product : productList) {
-            product.setStatus("Absent");
-        }
-        for (int i = 1; i < categoryList.size(); i++) {
-            Category category = categoryList.get(i);
-            List<Product> products = category.getProductList();
-            for (int y = 0; y < products.size() / 2; y++) {
-                Product product = products.get(y);
-                product.setStatus("Expected");
-            }
-            for (int j = 0; j < products.size(); j++) {
-                Product product = products.get(j);
-                if (product.getStatus().equals("Available")) {
-                    product.setPrice(product.getPrice() * 100 / 80);
-                }
-            }
-        }
-        ds.save(gadgetMarket);
-        LOG.info("====================Data updated successfully===========================");
+        Product TEST_PRODUCT_03 = new Product("TEST PRODUCT 03", 100000000, "Available");
+        Product TEST_PRODUCT_04 = new Product("TEST PRODUCT 04", 15000000, "Expected");
 
+        ds.save(TEST_PRODUCT_03);
+        ds.save(TEST_PRODUCT_04);
+        LOG.info("Data updated successfully: {PRICE, STATUS}");
 
         Product product = gadgetMarket.get("benq display");
-        LOG.info("====================FOUNDED PRODUCT: " + product);
+        LOG.info("FOUNDED PRODUCT: " + product);
 
         gadgetMarket.changePrice("sony display", 1200);
         gadgetMarket.changeStatus("simCard", "Expected");
         gadgetMarket.add("mobile", new Product("Galaxy smartPhone", 1999, "Expected"));
-        LOG.info("==================Status/price updated successfully=====================");
+        LOG.info("Data updated successfully: {PRICE, STATUS}");
     }
 
     private GadgetStore getGadgetStore() {
         GadgetStore gadgetMarket = GadgetStore.getInstance();
-        gadgetMarket.setName("GadgetMarket");
+        gadgetMarket.setName("Gadget Store");
         Category mobile = new Category();
         Category monitor = new Category();
         Category tools = new Category();
